@@ -1,5 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const sendOTP = require('../service/sms');
+
 const { ROUNDS ,SECRET } = require('../config/constants');
 const Investor = require('../models/Investor.model');
 const Startup = require('../models/Startup.model');
@@ -50,6 +52,8 @@ const register = async (req,res)=>{
 				let response = await investor.save();
 				
 				// send OTP to phone 
+				let sid = await sendOTP(phone,otp);
+				console.log('sid is = ',sid)
 
 				return res.status(201).json({
 					error:false,
@@ -91,7 +95,9 @@ const register = async (req,res)=>{
 				//store the startup details
 				let response = await startup.save();
 
-				//send OTP
+				//send OTP				
+				sendOTP(phone,otp);
+
 
 				return res.status(201).json({
 					error:false,
