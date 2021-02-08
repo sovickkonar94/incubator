@@ -18,17 +18,22 @@ const register = async (req,res)=>{
 		let email = req.body.email;
 		let password = req.body.password;
 		let phone = req.body.phone;
-		let userType = req.body.userType;
+		let userType = req.body.type;
 
 		if(userType === 'i'){
 			//check if the Investor exists
-			let result = await Investor.find({phone:phone})
-			if(result)
-				throw new Error('Investor details already exists');
+			let result = await Investor.findOne({phone:phone})
+			console.log('result = ',result)
+			if(result){
+				return res.status(409).json({
+					error:true,
+					message:'Investor Exists'
+				})
+			}
 			else{
 
 				// hash the password 
-				let hashedPassword = await bcrypt.hash(password,ROUNDS);
+				let hashedPassword = await bcrypt.hash(password,10);
 
 				//create a OTP of 4 DIGIT
 				let otp = Math.floor(Math.random()*1000 ) +9000
@@ -46,8 +51,7 @@ const register = async (req,res)=>{
 				
 				// send OTP to phone 
 
-
-				return res.json({
+				return res.status(201).json({
 					error:false,
 					id:response._id,
 					message:"Investor registered !!"
@@ -59,15 +63,18 @@ const register = async (req,res)=>{
 
 
 			//check if the startup exists
-			let result = await Startup.find({phone:phone});
-
+			let result = await Startup.findOne({phone:phone});
+			console.log('result = ',result);
 			if(result){
 				//set status
-				throw new Error('Startup details already exists')
+				return res.status(409).json({
+					error:true,
+					message:"Startup Exists"
+				})
 			}else{
 
 				// hash the password 
-				let hashedPassword = await bcrypt.hash(password,ROUNDS);
+				let hashedPassword = await bcrypt.hash(password,10);
 
 				//create a OTP of 4 DIGIT
 				let otp = Math.floor(Math.random()*1000 ) +9000
@@ -82,7 +89,7 @@ const register = async (req,res)=>{
 				});
 
 				//store the startup details
-				let response = await Startup.save();
+				let response = await startup.save();
 
 				//send OTP
 
@@ -101,13 +108,12 @@ const register = async (req,res)=>{
 		}
 
 	}catch(err){
-		return res.json({
+		return res.status(500).json({
 			error:true,
 			message:err.message
 		})
 
 	}
-
 }
 
 
@@ -118,9 +124,9 @@ const verify = async (req,res)=>{
 		let userType = req.body.type;
 
 		if(userType === 'i'){
-			let result = await Investor.find({_id:id});
+			let result = await Investor.findOne({_id:id});
 			if(result.otp == otp){
-				return res.json({
+				return res.status(200).json({
 					error:false,
 					message:"OTP verified"
 				})
@@ -129,9 +135,9 @@ const verify = async (req,res)=>{
 			}
 		}
 		if(userType === 's'){
-			let result = await Startup.find({_id:id});
+			let result = await Startup.findOne({_id:id});
 			if(result.otp == otp){
-				return res.json({
+				return res.status(200).json({
 					error:false,
 					message:"OTP verified"
 				})
@@ -141,7 +147,7 @@ const verify = async (req,res)=>{
 		}
 
 	}catch(err){
-		return res.json({
+		return res.status(400).json({
 			error:true,
 			message:err.message
 		})
@@ -158,7 +164,7 @@ const login = async (req,res)=>{
 
 		if(userType === 'i'){
 			//investor login
-			let investor = await Investor.find({email:email});
+			let investor = await Investor.findOne({email:email});
 			if(investor){
 				//check for password
 				let investorPassword = investor.password;
@@ -186,7 +192,7 @@ const login = async (req,res)=>{
 			}
 		}if(userType === 's'){
 			//startup login
-			let startUp = await Startup.find({email:email})
+			let startUp = await Startup.findOne({email:email})
 			if(startUp){
 				//check for password
 				let startUpPassword = startUp.password;
@@ -211,6 +217,8 @@ const login = async (req,res)=>{
 			}else{
 				throw new Error('Startup Details Not Found')
 			}
+		}else{
+			throw new Error('userType not provided')
 		}
 
 	}catch(err){
@@ -224,5 +232,6 @@ const login = async (req,res)=>{
 module.exports = {
 	test,
 	verify,
-	register
+	register,
+	login
 }
