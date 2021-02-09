@@ -11,8 +11,8 @@ const sendOTP = (phone,otp)=>{
 		to:`+91${phone}`,
 		from:SENDERNO
 	}).then(message =>{
-		console.log(message.sid)
-	})
+		console.log('message id is :',message.sid)
+	}).catch(err=>console.log('Error: ',err.message))
 }
 
 module.exports = sendOTP

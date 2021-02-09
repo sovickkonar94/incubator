@@ -52,8 +52,8 @@ const register = async (req,res)=>{
 				let response = await investor.save();
 				
 				// send OTP to phone 
-				let sid = await sendOTP(phone,otp);
-				console.log('sid is = ',sid)
+				sendOTP(phone,otp);
+				
 
 				return res.status(201).json({
 					error:false,
